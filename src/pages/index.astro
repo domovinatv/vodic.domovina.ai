@@ -1,0 +1,257 @@
+---
+import { getCollection, render } from "astro:content";
+import Osnova from "../layouts/Osnova.astro";
+import { pitanja, putevi } from "../putevi";
+
+const koraci = await Promise.all(
+  (await getCollection("koraci")).map(async (k) => ({ ...k, Sadrzaj: (await render(k)).Content })),
+);
+const aplikacije = Object.fromEntries(
+  (await getCollection("aplikacije")).map((a) => [a.id, { naziv: a.data.naziv, povratak: a.data.povratak }]),
+);
+
+// Svaki korak iz puteva mora postojati kao Markdown datoteka.
+const poznati = new Set(koraci.map((k) => k.id));
+for (const [put, ids] of Object.entries(putevi)) {
+  for (const id of ids) if (!poznati.has(id)) throw new Error(`put ${put}: nema koraka ${id}`);
+}
+---
+<Osnova naslov="Vodič za prijavu Certilijom">
+  <p class="oznaka">Neslužbeni vodič</p>
+  <h1>Do prijave Certilijom, korak po korak</h1>
+  <p class="uvod" id="uvod">
+    Na kraju ćeš imati aktiviranu aplikaciju Certilia na mobitelu, lozinku
+    računa i prijavu koja prolazi. Treba 10 do 20 minuta.
+  </p>
+  <p class="aplikacija" id="aplikacija" hidden></p>
+
+  <section id="pitanja" aria-live="polite">
+    {pitanja.map((p, i) => (
+      <div class="pitanje" data-pitanje={p.id} hidden={i !== 0}>
+        <h2>{p.tekst}</h2>
+        {p.pomoc && <p class="pomoc">{p.pomoc}</p>}
+        <div class="odgovori">
+          {p.odgovori.map((o) => <button type="button" data-dalje={o.dalje}>{o.tekst}</button>)}
+        </div>
+      </div>
+    ))}
+  </section>
+
+  <section id="put" hidden>
+    <div class="napredak"><span id="napredak-tekst"></span><progress id="napredak" max="1" value="0"></progress></div>
+    <ol id="lista"></ol>
+    <p><button type="button" id="ispocetka">Kreni ispočetka</button></p>
+  </section>
+
+  <div id="spremiste" hidden>
+    {koraci.map((k) => (
+      <li class="korak" data-korak={k.id}>
+        <div class="glava">
+          <span class="broj" aria-hidden="true"></span>
+          <h2>{k.data.naslov}</h2>
+        </div>
+        {k.data.nepotvrdeno && <p class="nepotvrdeno">Ovaj korak još provjeravamo na stvarnim korisnicima.</p>}
+        <div class="sadrzaj"><k.Sadrzaj /></div>
+        {k.id === "probna-prijava" && <p><a class="gumb glavni" id="povratak" href="https://portal.certilia.com">Otvori portal.certilia.com</a></p>}
+        {k.data.video && (
+          <p class="video">
+            <a href={`https://www.youtube.com/watch?v=${k.data.video}`} target="_blank" rel="noopener">Službeni Certilia video (YouTube)</a>
+          </p>
+        )}
+        {k.data.zapeo.length > 0 && (
+          <details class="zapeo">
+            <summary>Zapeo sam</summary>
+            <dl>
+              {k.data.zapeo.map((z) => (<><dt>{z.problem}</dt><dd>{z.rjesenje}</dd></>))}
+            </dl>
+          </details>
+        )}
+        <p><button type="button" class="glavni gotovo" aria-pressed="false">Gotovo ✔</button></p>
+      </li>
+    ))}
+  </div>
+
+  <script type="application/json" id="podaci" set:html={JSON.stringify({ putevi, aplikacije })} />
+</Osnova>
+
+<script>
+  type Podaci = {
+    putevi: Record<string, string[]>;
+    aplikacije: Record<string, { naziv: string; povratak: string }>;
+  };
+  type Stanje = { put?: string; gotovo: string[] };
+
+  const { putevi, aplikacije } = JSON.parse(document.getElementById("podaci")!.textContent!) as Podaci;
+  const KLJUC = "vodic:stanje";
+
+  // localStorage može biti nedostupan (privatni prozor); vodič radi i bez njega.
+  function ucitaj(): Stanje {
+    try {
+      const s = JSON.parse(localStorage.getItem(KLJUC) ?? "null");
+      if (s && Array.isArray(s.gotovo)) return s;
+    } catch {}
+    return { gotovo: [] };
+  }
+  function spremi() {
+    try { localStorage.setItem(KLJUC, JSON.stringify(stanje)); } catch {}
+  }
+
+  let stanje = ucitaj();
+  const pitanjaEl = document.getElementById("pitanja")!;
+  const putEl = document.getElementById("put")!;
+  const lista = document.getElementById("lista")!;
+  const spremiste = document.getElementById("spremiste")!;
+
+  // ?app=e-satnica: povratak na prijavu te aplikacije na kraju vodiča.
+  const app = aplikacije[new URLSearchParams(location.search).get("app") ?? ""];
+  if (app) {
+    const el = document.getElementById("aplikacija")!;
+    el.textContent = `Poslala te aplikacija ${app.naziv}. Na kraju te vraćamo na njezinu prijavu.`;
+    el.hidden = false;
+    const povratak = spremiste.querySelector<HTMLAnchorElement>("#povratak")!;
+    povratak.href = app.povratak;
+    povratak.textContent = `Natrag na prijavu: ${app.naziv}`;
+  }
+
+  function pokaziPitanje(id: string) {
+    for (const p of pitanjaEl.querySelectorAll<HTMLElement>("[data-pitanje]")) p.hidden = p.dataset.pitanje !== id;
+    pitanjaEl.hidden = false;
+    putEl.hidden = true;
+  }
+
+  function osvjeziNapredak(ids: string[]) {
+    const n = ids.filter((id) => stanje.gotovo.includes(id)).length;
+    const p = document.getElementById("napredak") as HTMLProgressElement;
+    p.max = ids.length;
+    p.value = n;
+    document.getElementById("napredak-tekst")!.textContent = `${n} od ${ids.length} koraka`;
+    for (const li of lista.querySelectorAll<HTMLElement>(".korak")) {
+      const gotov = stanje.gotovo.includes(li.dataset.korak!);
+      li.classList.toggle("je-gotov", gotov);
+      li.querySelector(".gotovo")!.setAttribute("aria-pressed", String(gotov));
+    }
+    // Prvi nedovršeni korak je otvoren, ostali su sažeti.
+    const sljedeci = ids.find((id) => !stanje.gotovo.includes(id));
+    for (const li of lista.querySelectorAll<HTMLElement>(".korak")) li.classList.toggle("aktivan", li.dataset.korak === sljedeci);
+  }
+
+  function pokaziPut(put: string) {
+    const ids = putevi[put];
+    if (!ids) return pokaziPitanje("radi");
+    while (lista.firstChild) spremiste.appendChild(lista.firstChild);
+    ids.forEach((id, i) => {
+      const li = spremiste.querySelector<HTMLElement>(`[data-korak="${id}"]`)!;
+      li.querySelector(".broj")!.textContent = String(i + 1);
+      lista.appendChild(li);
+    });
+    pitanjaEl.hidden = true;
+    putEl.hidden = false;
+    osvjeziNapredak(ids);
+  }
+
+  pitanjaEl.addEventListener("click", (e) => {
+    const dalje = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-dalje]")?.dataset.dalje;
+    if (!dalje) return;
+    if (dalje.startsWith("put:")) {
+      stanje = { put: dalje.slice(4), gotovo: [] };
+      spremi();
+      pokaziPut(stanje.put!);
+      putEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      pokaziPitanje(dalje);
+    }
+  });
+
+  lista.addEventListener("click", (e) => {
+    const t = e.target as HTMLElement;
+    const li = t.closest<HTMLElement>(".korak");
+    if (!li) return;
+    if (t.closest(".gotovo")) {
+      const id = li.dataset.korak!;
+      stanje.gotovo = stanje.gotovo.includes(id) ? stanje.gotovo.filter((g) => g !== id) : [...stanje.gotovo, id];
+      spremi();
+      osvjeziNapredak(putevi[stanje.put!]);
+      lista.querySelector(".aktivan")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (!li.classList.contains("aktivan") && t.closest(".glava")) {
+      // Klik na naslov sažetog koraka ga otvara.
+      for (const k of lista.querySelectorAll(".korak")) k.classList.toggle("aktivan", k === li);
+    }
+  });
+
+  document.getElementById("ispocetka")!.addEventListener("click", () => {
+    stanje = { gotovo: [] };
+    spremi();
+    pokaziPitanje("radi");
+    window.scrollTo({ top: 0 });
+  });
+
+  if (stanje.put && putevi[stanje.put]) pokaziPut(stanje.put);
+</script>
+
+<style>
+  .oznaka {
+    display: inline-block;
+    margin: 0;
+    padding: 0.15rem 0.55rem;
+    border-radius: 1rem;
+    background: var(--upozorenje-poz);
+    color: var(--upozorenje);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .uvod, .pomoc { color: var(--tekst-blago); }
+  .aplikacija {
+    padding: 0.75rem 1rem;
+    border-left: 4px solid var(--naglasak);
+    background: var(--kartica);
+  }
+  .pitanje {
+    margin-top: 1.5rem;
+    padding: 1.25rem;
+    border: 1px solid var(--rub);
+    border-radius: 0.9rem;
+    background: var(--kartica);
+  }
+  .odgovori { display: grid; gap: 0.6rem; margin-top: 1rem; }
+  .napredak { display: flex; align-items: center; gap: 0.75rem; margin: 1.5rem 0 1rem; color: var(--tekst-blago); font-size: 0.9rem; }
+  .napredak progress { flex: 1; height: 0.6rem; accent-color: var(--uspjeh); }
+  ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.75rem; }
+  :global(.korak) {
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--rub);
+    border-radius: 0.9rem;
+    background: var(--kartica);
+  }
+  :global(.korak .glava) { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+  :global(.korak .broj) {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    border: 2px solid var(--naglasak);
+    color: var(--naglasak);
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  :global(.korak.je-gotov .broj) { background: var(--uspjeh); border-color: var(--uspjeh); color: var(--kartica); }
+  :global(.korak.je-gotov h2) { color: var(--tekst-blago); text-decoration: line-through; }
+  :global(.korak:not(.aktivan) > :not(.glava)) { display: none; }
+  :global(.korak.aktivan) { border-color: var(--naglasak); }
+  :global(.korak .sadrzaj) { margin-top: 0.75rem; }
+  :global(.korak .sadrzaj ul), :global(.korak .sadrzaj ol) { list-style: revert; padding-left: 1.3rem; display: block; }
+  :global(.nepotvrdeno) {
+    margin: 0.75rem 0 0;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    background: var(--upozorenje-poz);
+    color: var(--upozorenje);
+    font-size: 0.9rem;
+  }
+  :global(.zapeo) { margin: 0.75rem 0; }
+  :global(.zapeo summary) { cursor: pointer; color: var(--naglasak); font-weight: 600; }
+  :global(.zapeo dt) { font-weight: 600; margin-top: 0.6rem; }
+  :global(.zapeo dd) { margin: 0.2rem 0 0; color: var(--tekst-blago); }
+  :global(.video) { font-size: 0.9rem; }
+</style>

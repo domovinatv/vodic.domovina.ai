@@ -1,0 +1,5 @@
+{
+  "naziv": "e-satnica",
+  "povratak": "https://e-satnica.domovina.ai/prijava",
+  "autentifikatori": ["BasicAuthenticator"]
+}

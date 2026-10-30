@@ -1,0 +1,101 @@
+---
+interface Props {
+  naslov: string;
+  opis?: string;
+}
+const { naslov, opis = "Neslužbeni vodič korak po korak do ispravne prijave Certilijom." } = Astro.props;
+---
+<!doctype html>
+<html lang="hr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{naslov}</title>
+    <meta name="description" content={opis} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <slot />
+    <footer>
+      <p>
+        <strong>Neslužbeni vodič.</strong> Ovo nije stranica Certilije ni AKD-a.
+        Tekstovi su naši, sastavljeni iz javnih uputa i stvarnih prolazaka.
+      </p>
+      <p>
+        Službena podrška Certilije: <a href="mailto:helpdesk@certilia.com">helpdesk@certilia.com</a>,
+        <a href="tel:08000440">0800 0440</a>.
+      </p>
+      <p>
+        <a href="https://github.com/domovinatv/vodic.domovina.ai">Izvorni kod i ispravci</a> · MIT
+      </p>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --pozadina: #f7f7f5;
+    --kartica: #ffffff;
+    --tekst: #1d1d1b;
+    --tekst-blago: #5d5d58;
+    --rub: #deddd7;
+    --naglasak: #1f5fbf;
+    --naglasak-tekst: #ffffff;
+    --uspjeh: #2e7d4f;
+    --upozorenje: #8a5a00;
+    --upozorenje-poz: #fff4dc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --pozadina: #161615;
+      --kartica: #20201e;
+      --tekst: #ececea;
+      --tekst-blago: #a5a59f;
+      --rub: #363633;
+      --naglasak: #6fa3ff;
+      --naglasak-tekst: #0b1a33;
+      --uspjeh: #6cc690;
+      --upozorenje: #f0c060;
+      --upozorenje-poz: #33290f;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0 auto;
+    max-width: 40rem;
+    padding: 1.25rem 1rem 3rem;
+    background: var(--pozadina);
+    color: var(--tekst);
+    font: 1.0625rem/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  a { color: var(--naglasak); }
+  h1 { font-size: 1.6rem; line-height: 1.25; margin: 0.5rem 0 0.75rem; }
+  h2 { font-size: 1.2rem; line-height: 1.3; margin: 0; }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rub);
+    color: var(--tekst-blago);
+    font-size: 0.9rem;
+  }
+  button, .gumb {
+    display: inline-block;
+    font: inherit;
+    padding: 0.7rem 1rem;
+    border-radius: 0.6rem;
+    border: 1px solid var(--rub);
+    background: var(--kartica);
+    color: var(--tekst);
+    cursor: pointer;
+    text-decoration: none;
+    text-align: left;
+  }
+  button.glavni, .gumb.glavni {
+    background: var(--naglasak);
+    border-color: var(--naglasak);
+    color: var(--naglasak-tekst);
+    font-weight: 600;
+  }
+  button:focus-visible, .gumb:focus-visible { outline: 3px solid var(--naglasak); outline-offset: 2px; }
+</style>

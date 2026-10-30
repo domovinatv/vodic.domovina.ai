@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "vodic-domovina-ai",
+  // Račun D.O.M., zona domovina.ai
+  "account_id": "7dc7167b7e2e00923bfa7cd697df14e4",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  },
+  "routes": [{ "pattern": "vodic.domovina.ai", "custom_domain": true }]
+}
