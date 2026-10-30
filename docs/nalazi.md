@@ -60,7 +60,10 @@ Najkorisnije (sažeto našim riječima):
 14 videa iz [izvori.md](izvori.md), analizirano lokalno: kadar svake 2 s
 (rezanje na promjeni scene daje samo 1–5 kadrova, jer su to animirani snimci
 ekrana), Apple Vision OCR (`scripts/ocr.swift`), jedan kontakt-list po videu.
-Nijedan nema titlove. Bilješke po videu: `istrazivanje/videi/<id>/koraci.md`
+Nijedan nema titlove. Govor nije provjeren: zvuk je stalan (srednja glasnoća
+−7 do −23 dB, gotovo bez tišina), što odgovara glazbenoj podlozi, a pokušaj
+transkripcije (`agy_glasovna.sh` na `c7uD8aZsx3o`) vratio se bez izlaza nakon
+308 s. Tekst na ekranu nosi sve korake, pa to ne mijenja zaključke. Bilješke po videu: `istrazivanje/videi/<id>/koraci.md`
 (lokalno, gitignored). Postupak je u `scripts/videi.sh`.
 
 Najvažnije:
