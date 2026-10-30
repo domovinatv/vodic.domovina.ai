@@ -22,7 +22,7 @@ lozinka računa. Ljudi s čitačem osobne to obično nemaju (vidi
   objavljujemo (autorsko pravo). Njihove videe smijemo ugraditi s YouTubea kao
   „službeni video" uz korak.
 - Jasno „neslužbeni vodič"; „Certilia" nije naziv stranice ni domene.
-  Radni naziv domene `vodic.domovina.ai` (još nepotvrđeno).
+  Domena `vodic.domovina.ai`, uživo od 2026-10-30.
 - Bez baze i osobnih podataka. Napredak u `localStorage` (uz try/catch;
   stranica radi i bez njega).
 
@@ -58,7 +58,7 @@ OCR tekstom) i dopunjen [stablo.md](stablo.md), svaki korak s izvorom.
 - Vlastite snimke ekrana snimamo tijekom tih prolazaka (iOS i Android,
   HR jezik preglednika).
 
-### 2. Aplikacija
+### 2. Aplikacija (prva verzija objavljena 2026-10-30)
 
 - Astro, statički (prerender), Cloudflare Workers static assets, račun
   D.O.M. (`7dc7167b7e2e00923bfa7cd697df14e4`, zona domovina.ai).
@@ -86,7 +86,6 @@ OCR tekstom) i dopunjen [stablo.md](stablo.md), svaki korak s izvorom.
 
 ## Otvoreno
 
-- Domena (radno `vodic.domovina.ai`).
 - Želimo li anonimno brojati na kojem koraku ljudi odustaju (bez identiteta)?
   Zasad ne; prvo vidjeti treba li.
 - Tražiti od Certilije da e-satnici uključi i prijavu karticom/smsID?
