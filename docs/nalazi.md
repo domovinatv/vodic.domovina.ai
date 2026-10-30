@@ -55,10 +55,63 @@ Najkorisnije (sažeto našim riječima):
 - Prvi Google rezultat („Kako aktivirati Certilia mobileID?", 2021.) je zbrkan
   oko preduvjeta (reg.certilia.com, udaljeni certifikat); ne pratiti ga.
 
-## Videi
+## Videi (faza 0, 2026-10-30)
 
-Nijedan nema titlove (`yt-dlp`: `subtitles: NA`). Popis u [izvori.md](izvori.md).
-Analiza (faza 0) još nije napravljena.
+14 videa iz [izvori.md](izvori.md), analizirano lokalno: kadar svake 2 s
+(rezanje na promjeni scene daje samo 1–5 kadrova, jer su to animirani snimci
+ekrana), Apple Vision OCR (`scripts/ocr.swift`), jedan kontakt-list po videu.
+Nijedan nema titlove. Bilješke po videu: `istrazivanje/videi/<id>/koraci.md`
+(lokalno, gitignored). Postupak je u `scripts/videi.sh`.
+
+Najvažnije:
+
+- **Na putu A (QR sa šaltera) korisnik postavlja lozinku računa.** Nakon
+  skena QR-a stiže SMS kod na broj zapisan u MUP-u, zatim se upisuje e-mail
+  i kod s e-maila, pa na jednom ekranu dvije lozinke: za Certilia korisnički
+  račun i za udaljeni potpisni certifikat (`f675WcRwN4E @ 12–20 s`). Ljudi ih
+  lako zamijene. Vodič mora reći da za prijavu treba prva i da je treba
+  zapisati.
+- **smsID nije zamjena za lozinku.** Na portalu se prvo upišu korisničko ime
+  i lozinka, a tek onda bira drugi korak: smsID, mobileID ili „low level
+  login" (`cm9rVAodkN4 @ 60–70 s`, `LIk8cLgybaA @ 18–24 s`). Članak „aktivacija
+  samo mobitelom" to prešućuje. Tko nema lozinku, prvo je resetira.
+- **Prijava u aplikaciju nakon aktivacije uvijek ide lozinkom** + push
+  potvrdom (`c7uD8aZsx3o @ 26–32 s`, `cm9rVAodkN4 @ 38–46 s`).
+- **Nova aplikacija (1.0.181, svibanj 2026.) na prvom ekranu pita** „Imam
+  Certilia račun / Imam QR kod / Nemam ništa" (`c7uD8aZsx3o @ 6 s`). Naše prvo
+  pitanje treba ići istim redom, da korisnik prepozna ekran.
+- **QR za aktivaciju s portala vrijedi ~30 s** (odbrojavanje,
+  `cm9rVAodkN4 @ 22–26 s`). Ako se prebacuje između preglednika i aplikacije
+  na istom mobitelu, tok ide preko „Open in Certilia?", a ne preko QR-a
+  (`cm9rVAodkN4 @ 80 s`).
+- **Push potvrda ima odbrojavanje od ~60 s** (`c7uD8aZsx3o @ 32 s`).
+- **Ekrani prijave (idp) često su na engleskom** („Sign In", „Forgot
+  Password?", „Continue"). U vodiču zato navodimo oba naziva.
+- Registracija osobnom i čitačem iz 2021. također je tražila lozinku
+  (`G1OkHbsl7gc @ 38–50 s`). Tko je tada prošao, ima račun, ali možda je
+  zaboravio lozinku ili mu je račun obrisan istekom certifikata.
+- e-Građani nude „eOsobna iskaznica" (čitač) i „Certilia osobni mobile.ID"
+  kao zasebne vjerodajnice (`4kkT_XNbByA @ 4–10 s`). Ulazak u e-Građane
+  čitačem zato ne znači da korisnik ima Certilia račun. Upravo to je slučaj
+  korisnice od 30.10.
+- Kanal AKD-a (`qkO1tGPYyTQ`, `O2vCVVep310`, `4_dEvVquoSs`) pokriva
+  aktivaciju same osobne (PIN-ovi, Middleware) i promociju. Za Certilia
+  račun ne daje korake.
+
+Otvoreno za fazu 1: što vidi netko tko se prvi put prijavi na portal karticom
+(nastaje li račun i gdje se postavlja lozinka). Moja Certilia ima stavku
+„Certilia lozinka" (`CaUAnJ7hyCw @ 18 s`), ali tok nijedan video ne pokazuje.
+
+## developer.certilia.com: može li klijent tražiti karticu ili smsID?
+
+Sam ne može. Obrazac za OIDC servis na developer portalu nudi Callback URL,
+Grant Types, Scope, tražene podatke o korisniku i trajanje tokena, ali ne i
+izbor načina prijave. U dokumentaciji piše samo „The user authenticates
+using Certilia Mobile ID". OIDC discovery (`idp.certilia.com/oauth2/oidcdiscovery/.well-known/openid-configuration`)
+vraća `acr_values_supported: null`, dakle ni razina sigurnosti ne može se
+tražiti parametrom. Popis autentifikatora (`authenticators=` u URL-u prijave)
+postavlja Certilia po klijentu. Kartica ili smsID za e-satnicu mogu se dobiti
+samo zahtjevom helpdesku (`helpdesk@certilia.com`), ako uopće.
 
 ## Dva različita „mobileID-a"
 
