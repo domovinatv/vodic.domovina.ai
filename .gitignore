@@ -1,0 +1,10 @@
+# build output
+dist/
+.astro/
+node_modules/
+.wrangler/
+.DS_Store
+
+# Istraživanje: preuzeti videi, kadrovi, OCR i članci su tuđi autorski sadržaj.
+# Ostaju lokalno; u repo idu samo naši zaključci (docs/).
+istrazivanje/
