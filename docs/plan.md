@@ -55,6 +55,10 @@ OCR tekstom) i dopunjen [stablo.md](stablo.md), svaki korak s izvorom.
   aplikacije s `BasicAuthenticator`.
 - Testeri: prva korisnica e-satnice (čitač, bez lozinke, zapela 30.10.), Matija
   („Aktiviraj na drugom uređaju"), ostatak e-satnica tima.
+- 2026-10-30 poziv e-satnica timu da prođu `?app=e-satnica` svatko svojim
+  putem i jave korak na kojem su zapeli i razlike u ekranima. Najviše treba
+  put „čitač" (koraci 2 i 3 nepotvrđeni). Odgovore upisati u `stablo.md`
+  (stupac Stanje), testere ne imenovati.
 - Vlastite snimke ekrana snimamo tijekom tih prolazaka (iOS i Android,
   HR jezik preglednika).
 
@@ -76,13 +80,18 @@ OCR tekstom) i dopunjen [stablo.md](stablo.md), svaki korak s izvorom.
   mobitelu na kojem instalira aplikaciju: paziti na prebacivanje između
   preglednika i aplikacije).
 
-### 3. Spajanje s e-satnicom
+### 3. Spajanje s e-satnicom (u produkciji od 2026-10-30, e-satnica `7bf0a7c`)
 
 - `/prijava`: link „Nemaš Certiliju ili ne znaš lozinku?".
-- `/upute`: zamijeniti ili preusmjeriti na vodič.
-- Povratak bez uspjeha (ishod `napusten`) → ponuditi vodič.
-- Mjera uspjeha: udio `napusten` u `prijave` prije i poslije
-  (`e-satnica/scripts/prijave.sh`; vremena u D1 su UTC).
+- `/upute`: rečenica „javi se u grupu" zamijenjena uputom na vodič.
+- Povratak bez uspjeha → kartica „Otvori vodič" na `/prijava`. `napusten`
+  nastaje tek kad se korisnik ne vrati, pa ga stranica ne vidi izravno:
+  `/auth/certilia/start` postavlja kolačić `esatnica_certilia_pokusaj`
+  (1 dan), uspješan callback ga briše. Kartica se pokaže uz
+  `certilia_greska` ili dok kolačić postoji (tipka natrag, povratak kasnije).
+- Mjera uspjeha: udio `napusten` u `prijave` prije i poslije 2026-10-30
+  15:44 UTC (`e-satnica/scripts/prijave.sh`; vremena u D1 su UTC). Jedan
+  `napusten` oko 15:45 UTC je test s `curl`-om, ne korisnik.
 
 ## Otvoreno
 
